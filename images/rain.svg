@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 240 240">
+  <title>雨</title>
+  <rect width="240" height="240" rx="24" fill="#e3f2fd"/>
+  <g fill="#90a4ae" transform="translate(0 -25)"><circle cx="82" cy="120" r="32"/><circle cx="120" cy="100" r="42"/><circle cx="162" cy="124" r="28"/><rect x="82" y="110" width="80" height="42"/></g>
+  <g stroke="#1e88e5" stroke-width="8" stroke-linecap="round">
+    <line x1="92" y1="148" x2="84" y2="170"/><line x1="122" y1="148" x2="114" y2="170"/><line x1="152" y1="148" x2="144" y2="170"/>
+    <line x1="107" y1="186" x2="99" y2="208"/><line x1="137" y1="186" x2="129" y2="208"/>
+  </g>
+</svg>

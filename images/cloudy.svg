@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 240 240">
+  <title>くもり</title>
+  <rect width="240" height="240" rx="24" fill="#eceff1"/>
+  <g fill="#90a4ae" transform="translate(0 0)"><circle cx="82" cy="120" r="32"/><circle cx="120" cy="100" r="42"/><circle cx="162" cy="124" r="28"/><rect x="82" y="110" width="80" height="42"/></g>
+</svg>

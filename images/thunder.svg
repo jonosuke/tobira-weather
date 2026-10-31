@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 240 240">
+  <title>雷雨</title>
+  <rect width="240" height="240" rx="24" fill="#ede7f6"/>
+  <g fill="#546e7a" transform="translate(0 -25)"><circle cx="82" cy="120" r="32"/><circle cx="120" cy="100" r="42"/><circle cx="162" cy="124" r="28"/><rect x="82" y="110" width="80" height="42"/></g>
+  <polygon points="124,128 98,178 118,178 106,218 148,162 127,162 140,128" fill="#fdd835"/>
+</svg>

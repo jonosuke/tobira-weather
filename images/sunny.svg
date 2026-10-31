@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 240 240">
+  <title>晴れ</title>
+  <rect width="240" height="240" rx="24" fill="#e3f2fd"/>
+  <g stroke="#ffb300" stroke-width="10" stroke-linecap="round">
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(0 120 120)"/>
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(45 120 120)"/>
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(90 120 120)"/>
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(135 120 120)"/>
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(180 120 120)"/>
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(225 120 120)"/>
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(270 120 120)"/>
+    <line x1="120" y1="28" x2="120" y2="52" transform="rotate(315 120 120)"/>
+  </g>
+  <circle cx="120" cy="120" r="44" fill="#ffb300"/>
+</svg>

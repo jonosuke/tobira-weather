@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 240 240">
+  <title>霧</title>
+  <rect width="240" height="240" rx="24" fill="#eceff1"/>
+  <g stroke="#90a4ae" stroke-width="14" stroke-linecap="round">
+    <line x1="50" y1="75" x2="170" y2="75"/><line x1="70" y1="105" x2="190" y2="105"/>
+    <line x1="50" y1="135" x2="170" y2="135"/><line x1="70" y1="165" x2="190" y2="165"/>
+  </g>
+</svg>
