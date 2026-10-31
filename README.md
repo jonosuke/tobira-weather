@@ -51,7 +51,7 @@ Python は OS に入っている `python3` をそのまま使います。追加�
 
 ```sh
 cd tobira-weather
-python3 kyoto_weather.py
+python kyoto_weather.py
 ```
 
 - 天気をターミナルに表示したあと、対応する画像を epiphany で開きます。
