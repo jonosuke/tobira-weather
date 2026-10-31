@@ -28,6 +28,7 @@ Open-Meteo は、天気を「WMO 天気コード」という数値で返す。`k
 
 - コード2（一部くもり）は「晴れ」に含めている。「くもり」にしたい場合は、`kyoto_weather.py` の `WEATHER_BY_CODE` を書き換える。
 - 一覧にないコードが返ってきた場合は、「不明 (天気コード XX)」と表示する。
+- 表示した天気に対応する画像をブラウザで開く。画像は `images/` にあり、晴れ `sunny.svg`、くもり `cloudy.svg`、霧 `fog.svg`、雨 `rain.svg`、雪 `snow.svg`、雷雨 `thunder.svg`、不明 `unknown.svg`。
 - 96 と 99（ひょう）は、ひょうを予報する気象モデル（DWD ICON、UKMO など）を使ったときだけ返る。それ以外のモデルでは 95 か 97 になる。
 - 2026-10-31 に京都の今後8日分の予報で実際に出ていたコードは、0、1、2、3、51、53、55、61、63、80、81。
 - コードの公式の一覧は https://open-meteo.com/en/docs の「WMO Weather interpretation codes」にある。
