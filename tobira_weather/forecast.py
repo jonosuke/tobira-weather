@@ -25,6 +25,10 @@ class Forecast:
     """Open-Meteo が返した WMO 天気コード。"""
     weather: Weather | WeatherDetail
     """summarize=True なら Weather (大まかな天気)、False なら WeatherDetail (天気コードごとの天気)。"""
+    temperature: float
+    """気温 (℃、地上 2 m)。"""
+    wind_speed: float
+    """風速 (m/s、地上 10 m)。"""
 
 
 class WeatherError(Exception):
@@ -33,7 +37,7 @@ class WeatherError(Exception):
 
 def get_weather_at(latitude: float, longitude: float, when: datetime, *,
                    summarize: bool = True) -> Forecast:
-    """緯度 latitude・経度 longitude の、when の時刻の予報を返す。
+    """緯度 latitude・経度 longitude の、when の時刻の予報 (天気・気温・風速) を返す。
 
     時刻はすべて日本時間で扱う。タイムゾーンのない when は日本時間とみなし、
     タイムゾーンの付いた when は日本時間に直す。予報は 1 時間単位のため、分以下は切り捨てる。
@@ -45,7 +49,8 @@ def get_weather_at(latitude: float, longitude: float, when: datetime, *,
     query = urllib.parse.urlencode({
         "latitude": latitude,
         "longitude": longitude,
-        "hourly": "weather_code",
+        "hourly": "weather_code,temperature_2m,wind_speed_10m",
+        "wind_speed_unit": "ms",
         "timezone": JST.key,
         "start_hour": hour_param,
         "end_hour": hour_param,
@@ -57,9 +62,11 @@ def get_weather_at(latitude: float, longitude: float, when: datetime, *,
         raise WeatherError(_error_reason(error)) from error
     except (urllib.error.URLError, TimeoutError) as error:
         raise WeatherError(f"Open-Meteo に接続できませんでした: {error}") from error
-    code = data["hourly"]["weather_code"][0]
+    hourly = data["hourly"]
+    code = hourly["weather_code"][0]
     detail = WeatherDetail.from_code(code)
-    return Forecast(latitude, longitude, hour, code, detail.weather if summarize else detail)
+    return Forecast(latitude, longitude, hour, code, detail.weather if summarize else detail,
+                    hourly["temperature_2m"][0], hourly["wind_speed_10m"][0])
 
 
 def get_weather(prefecture: Prefecture | str, when: datetime, *, summarize: bool = True) -> Forecast:
