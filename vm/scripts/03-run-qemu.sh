@@ -2,25 +2,33 @@
 # UTM と同じ構成を QEMU コマンドで直接起動する (動作確認・自動テスト用)。
 #   HEADLESS=1 で画面なし起動。シリアルは vm/work/serial.log、
 #   QEMU モニタは vm/work/monitor.sock (screendump でスクリーンショット取得可)。
+#   SHARE=<Mac のフォルダ> で、そのフォルダを共有フォルダ (ゲストの /mnt/dev) にする。
 # SSH: ssh -p 5022 pi@127.0.0.1
 set -eu
 
 VM_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$VM_DIR/work/out"
-APPEND="root=PARTUUID=99c03aa0-02 rootfstype=ext4 rw rootwait fsck.repair=yes console=ttyAMA0 console=tty1"
+APPEND="$(cat "$OUT/cmdline.txt")"
 
+# UNIX ソケットのパスは 104 バイト未満に制限されるため、work に移動して相対パスで指定する
+cd "$VM_DIR/work"
 if [ "${HEADLESS:-0}" = 1 ]; then
-  DISPLAY_OPTS="-display none -serial file:$VM_DIR/work/serial.log -monitor unix:$VM_DIR/work/monitor.sock,server,nowait"
+  DISPLAY_OPTS="-display none -serial file:serial.log -monitor unix:monitor.sock,server,nowait"
 else
   DISPLAY_OPTS="-display cocoa -serial stdio"
 fi
+SHARE_OPTS=""
+if [ -n "${SHARE:-}" ]; then
+  SHARE_OPTS="-virtfs local,path=$SHARE,mount_tag=share,security_model=mapped-xattr"
+fi
 
+# Pi 3B+ と同じ 4 コア・1GB。Mac と同じ arm64 なので HVF で仮想化する (CPU は Mac のもの)
 # shellcheck disable=SC2086
-exec qemu-system-arm \
-  -M virt -cpu cortex-a7 -smp "${SMP:-1}" -m "${MEM:-512}" \
+exec qemu-system-aarch64 \
+  -M virt -accel hvf -cpu host -smp "${SMP:-4}" -m "${MEM:-1024}" \
   -kernel "$OUT/vmlinuz" -initrd "$OUT/initrd.img" -append "$APPEND" \
-  -drive if=none,id=hd0,format=qcow2,file="$OUT/rpi-trixie-virt.qcow2" \
+  -drive if=none,id=hd0,format=qcow2,file="$OUT/rpi-trixie-arm64-virt.qcow2" \
   -device virtio-blk-pci,drive=hd0 \
   -netdev user,id=net0,hostfwd=tcp:127.0.0.1:5022-:22 -device virtio-net-pci,netdev=net0 \
   -device virtio-gpu-pci -device qemu-xhci -device usb-kbd -device usb-tablet \
-  $DISPLAY_OPTS
+  $SHARE_OPTS $DISPLAY_OPTS

@@ -29,27 +29,20 @@ systemctl mask vncserver-virtuald vncserver-x11-serviced wayvnc wayvnc-control
 # userconf (上で実行済み) が無効化した初回設定サービスも、同じ理由で有効に戻り起動が遅くなるため mask する
 systemctl mask userconfig
 
-# 加工中だけ Raspbian のミラーを差し替える。既定の転送先 (地域ごとに自動選択) が
-# Podman の仮想マシンからつながらないことがあったため。最後に元に戻す
-SOURCES=$(grep -l "raspbian.raspberrypi.com/raspbian" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null | head -1)
-if [ -n "${RASPBIAN_MIRROR:-}" ] && [ -n "$SOURCES" ]; then
-  cp "$SOURCES" /tmp/sources.orig
-  sed -i "s|http://raspbian.raspberrypi.com/raspbian|$RASPBIAN_MIRROR|" "$SOURCES"
-fi
+# Chromium の初回起動時に「新しいキーリングのパスワード」ダイアログが出て止まるため、
+# キーリングを使わない (自動ログインではキーリングが開かない)
+printf '%s\n' 'export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --password-store=basic"' > /etc/chromium.d/90-password-store
 
-# pyautogui の依存のうちネイティブ拡張を含むものは apt (ARMv6 ビルド) から入れる
+# UTM の共有フォルダ (VirtFS、タグ share) を起動時に /mnt/dev へマウントする。
+# 共有していないときも起動が止まらないよう nofail を付ける
+mkdir -p /mnt/dev
+grep -q "^share " /etc/fstab || echo "share  /mnt/dev  9p  trans=virtio,version=9p2000.L,nofail  0  0" >> /etc/fstab
+
+# pyautogui の依存のうちネイティブ拡張を含むものは apt から入れる
 apt-get -o Acquire::Retries=5 update
 apt-get -o Acquire::Retries=5 install -y --no-install-recommends \
   python3-venv python3-pil python3-xlib python3-tk scrot xdotool
-# epiphany-browser: Pi Zero W (ARMv6) で使えるブラウザ。標準の Firefox は armv6l を
-# 起動スクリプトで拒否し、Chromium は ARMv7 ビルドのため Zero W では動かない。
-# 依存が多く、まとめて入れるとエミュレーション下の apt がメモリ不足になるため分ける
-apt-get -o Acquire::Retries=5 install -y --no-install-recommends epiphany-browser
-# 初回起動時の「既定のブラウザにしますか?」ダイアログがキー入力を奪うため出さない
-printf "[org.gnome.Epiphany]\nask-for-default=false\n" > /usr/share/glib-2.0/schemas/90-pizero-vm.gschema.override
-glib-compile-schemas /usr/share/glib-2.0/schemas
 apt-get clean
-[ -f /tmp/sources.orig ] && mv /tmp/sources.orig "$SOURCES"
 
 sudo -u "$VM_USER" python3 -m venv --system-site-packages "/home/$VM_USER/venv"
 sudo -u "$VM_USER" "/home/$VM_USER/venv/bin/pip" install --no-cache-dir pyautogui
@@ -57,3 +50,5 @@ sudo -u "$VM_USER" "/home/$VM_USER/venv/bin/pip" install --no-cache-dir pyautogu
 grep -E "^(autologin-user|autologin-session|user-session|greeter-session)=" /etc/lightdm/lightdm.conf
 # pyautogui は import 時に X11 の DISPLAY を要求するため、ここではバージョンだけ確認する
 "/home/$VM_USER/venv/bin/python" -c "import sys, importlib.metadata as m; print(sys.version.split()[0], 'pyautogui', m.version('pyautogui'))"
+dpkg --print-architecture
+dpkg-query -W -f '${Package} ${Version}\n' chromium firefox vlc 2>/dev/null || true
