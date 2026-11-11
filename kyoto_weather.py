@@ -1,9 +1,9 @@
 """1 週間後の現在時刻の京都の天気・気温・風速を表示し、天気に対応する画像 (images/*.svg) をブラウザで開く。
 
-    python3 kyoto_weather.py
+    python kyoto_weather.py
 
-ブラウザは epiphany があればそれを使い (Pi Zero W で動くのは epiphany だけ)、
-なければ OS の既定のブラウザを使う。SSH から実行しても VM / 実機の画面 (:0) に表示する。
+ブラウザは Raspberry Pi OS 標準の chromium があればそれを使い、なければ OS の既定のブラウザを使う。
+SSH から実行しても VM / 実機の画面 (:0) に表示する。
 """
 import os
 import shutil
@@ -19,9 +19,9 @@ IMAGE_DIR = Path(__file__).resolve().parent / "images"
 
 def open_image(weather: Weather):
     url = (IMAGE_DIR / f"{weather.name.lower()}.svg").as_uri()
-    if shutil.which("epiphany"):
+    if shutil.which("chromium"):
         env = {**os.environ, "DISPLAY": os.environ.get("DISPLAY", ":0")}
-        subprocess.Popen(["epiphany", url], env=env, start_new_session=True,
+        subprocess.Popen(["chromium", url], env=env, start_new_session=True,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         webbrowser.open(url)
