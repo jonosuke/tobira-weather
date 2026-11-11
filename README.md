@@ -1,10 +1,10 @@
 # tobira-weather
 
-1 週間後の現在時刻の京都の天気を [Open-Meteo](https://open-meteo.com/) から取得して表示し、天気に対応する画像をブラウザで開くスクリプトです。Raspberry Pi Zero W で動かすことを想定しています。
+1 週間後の現在時刻の京都の天気・気温・風速を [Open-Meteo](https://open-meteo.com/) から取得して表示し、天気に対応する画像をブラウザで開くスクリプトです。Raspberry Pi Zero W で動かすことを想定しています。
 
 ```
 $ python kyoto_weather.py
-2026-11-07 23:00 の京都の天気: 晴れ
+2026-11-18 23:00 の京都の天気: くもり、気温 13.4℃、風速 4.5m/s
 ```
 
 天気は「晴れ」「くもり」「霧」「雨」「雪」「雷雨」「不明」のどれかで表示します。どの天気コードがどれにあたるかは、[docs/weather_codes.md](docs/weather_codes.md) にまとめています。
@@ -54,7 +54,7 @@ cd tobira-weather
 python kyoto_weather.py
 ```
 
-- 天気をターミナルに表示したあと、対応する画像を epiphany で開きます。
+- 天気・気温・風速をターミナルに表示したあと、対応する画像を epiphany で開きます。
 - epiphany がすでに開いている場合は、新しいタブで開きます。
 - Pi Zero W は動作が遅いため、画像が表示されるまでしばらくかかります。開発用 VM では、epiphany の起動から表示まで 30 秒ほどかかりました。
 - SSH から実行した場合も、ラズパイの画面（`:0`）に表示します。

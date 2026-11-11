@@ -1,4 +1,4 @@
-"""1 週間後の現在時刻の京都の天気を表示し、天気に対応する画像 (images/*.svg) をブラウザで開く。
+"""1 週間後の現在時刻の京都の天気・気温・風速を表示し、天気に対応する画像 (images/*.svg) をブラウザで開く。
 
     python3 kyoto_weather.py
 
@@ -35,7 +35,8 @@ def main():
     name = forecast.weather.value
     if forecast.weather is Weather.UNKNOWN:
         name += f" (天気コード {forecast.code})"
-    print(f"{forecast.time:%Y-%m-%d %H:%M} の京都の天気: {name}")
+    print(f"{forecast.time:%Y-%m-%d %H:%M} の京都の天気: {name}、"
+          f"気温 {forecast.temperature:.1f}℃、風速 {forecast.wind_speed:.1f}m/s")
     open_image(forecast.weather)
 
 
