@@ -73,17 +73,28 @@ python kyoto_weather.py
 
 ## ライブラリとして使う
 
-天気を取得する部分は、ライブラリ `tobira_weather` にまとめています。都道府県と日時を渡すと、その時刻の天気を返します。
+天気を取得する部分は、ライブラリ `tobira_weather` にまとめています。天気を取得する関数は 2 つあります。
+
+| 関数 | 指定するもの | 返す天気 |
+| --- | --- | --- |
+| `get_weather_in_days(都道府県, 日数)` | 何日後か（1〜15） | その日の、今と同じ時刻の天気 |
+| `get_weather(都道府県, 日時)` | 日時 | 指定した時刻の天気 |
 
 ```python
 from datetime import datetime
-from tobira_weather import Prefecture, WeatherError, get_weather
+from tobira_weather import Prefecture, get_weather, get_weather_in_days
 
+# 10 日後の今の時刻の新潟の天気
+forecast = get_weather_in_days(Prefecture.NIIGATA, 10)
+
+# 2026-11-18 15:00 の京都の天気
 forecast = get_weather(Prefecture.KYOTO, datetime(2026, 11, 18, 15))
 print(forecast.weather)        # 晴れ
 print(forecast.code)           # 2（Open-Meteo が返した WMO 天気コード）
 print(forecast.time)           # 2026-11-18 15:00:00+09:00
 ```
+
+どちらの関数も、1 時間ごとの予報を「晴れ」「雨」などの大まかな天気にまとめて返します。`kyoto_weather.py` が表示する天気と同じです。
 
 ### 都道府県
 
@@ -93,16 +104,19 @@ print(forecast.time)           # 2026-11-18 15:00:00+09:00
 
 ### 日時
 
-- 予報は 1 時間ごとなので、分以下は切り捨てます（15:40 を渡すと 15:00 の予報）。
-- タイムゾーンのない `datetime` は、日本時間とみなします。タイムゾーンの付いた `datetime` は、日本時間に変換してから使います。
-- 取得できるのは、およそ 3 か月前から 16 日後までです。範囲外の日時を渡すと `WeatherError` になり、メッセージに許される範囲が出ます。
+- 時刻はすべて日本時間で扱います。ラズパイの時計が UTC などほかのタイムゾーンでも、結果は変わりません。
+  - `get_weather_in_days` は、日本時間の今の時刻を使います。
+  - `get_weather` に渡す `datetime` は、タイムゾーンがなければ日本時間とみなします。タイムゾーンが付いていれば、日本時間に直してから使います。
+- 予報は 1 時間ごとなので、分以下は切り捨てます（15:40 なら 15:00 の予報）。
+- `get_weather_in_days` に渡せる日数は 1〜15 です（`MAX_DAYS`）。Open-Meteo の予報は今日を含めて 16 日分なので、15 日後が最後です。範囲外の日数を渡すと `ValueError` になります。
+- `get_weather` で取得できるのは、およそ 3 か月前から 15 日後までです。範囲外の日時を渡すと `WeatherError` になり、メッセージに許される範囲が出ます。
 
 ### 天気とエラー
 
 - `forecast.weather` は `Weather`（`StrEnum`）で、値は「晴れ」「くもり」「霧」「雨」「雪」「雷雨」「不明」のどれかです。
-- 通信できないときや、範囲外の日時を渡したときは `WeatherError` を投げます。
+- 通信できないときや、`get_weather` に範囲外の日時を渡したときは `WeatherError` を投げます。
 
-`kyoto_weather.py` は、このライブラリを使って「1 週間後の今の時刻の京都」の天気を表示するスクリプトです。ほかの場所や日時にしたい場合は、`kyoto_weather.py` の `get_weather(...)` に渡す値を変えてください。
+`kyoto_weather.py` は、このライブラリを使って「1 週間後の今の時刻の京都」の天気を表示するスクリプトです。ほかの場所や日数にしたい場合は、`kyoto_weather.py` の `get_weather_in_days(Prefecture.KYOTO, 7)` を書き換えてください。
 
 ## ディレクトリ構成
 
