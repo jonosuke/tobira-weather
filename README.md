@@ -73,16 +73,17 @@ python kyoto_weather.py
 
 ## ライブラリとして使う
 
-天気を取得する部分は、ライブラリ `tobira_weather` にまとめています。天気を取得する関数は 2 つあります。
+天気を取得する部分は、ライブラリ `tobira_weather` にまとめています。天気を取得する関数は 3 つあります。
 
-| 関数 | 指定するもの | 返す天気 |
+| 関数 | 場所 | 時刻 |
 | --- | --- | --- |
-| `get_weather_in_days(都道府県, 日数)` | 何日後か（1〜15） | その日の、今と同じ時刻の天気 |
-| `get_weather(都道府県, 日時)` | 日時 | 指定した時刻の天気 |
+| `get_weather_in_days(都道府県, 日数)` | 都道府県 | 何日後か（1〜15）。時刻は今と同じ |
+| `get_weather(都道府県, 日時)` | 都道府県 | 指定した日時 |
+| `get_weather_at(緯度, 経度, 日時)` | 緯度と経度 | 指定した日時 |
 
 ```python
 from datetime import datetime
-from tobira_weather import Prefecture, get_weather, get_weather_in_days
+from tobira_weather import Prefecture, get_weather, get_weather_at, get_weather_in_days
 
 # 10 日後の今の時刻の新潟の天気
 forecast = get_weather_in_days(Prefecture.NIIGATA, 10)
@@ -92,9 +93,13 @@ forecast = get_weather(Prefecture.KYOTO, datetime(2026, 11, 18, 15))
 print(forecast.weather)        # 晴れ
 print(forecast.code)           # 2（Open-Meteo が返した WMO 天気コード）
 print(forecast.time)           # 2026-11-18 15:00:00+09:00
+
+# 緯度・経度を指定して、天気をまとめずに取得する
+forecast = get_weather_at(35.0, 135.7, datetime(2026, 11, 18, 15), summarize=False)
+print(forecast.weather)        # おおむね晴れ
 ```
 
-どちらの関数も、1 時間ごとの予報を「晴れ」「雨」などの大まかな天気にまとめて返します。`kyoto_weather.py` が表示する天気と同じです。
+どの関数も、1 時間ごとの予報を返します。返す値はどれも `Forecast` で、天気（`weather`）、天気コード（`code`）、対象の時刻（`time`）、緯度と経度（`latitude`、`longitude`）を持ちます。
 
 ### 都道府県
 
@@ -106,15 +111,28 @@ print(forecast.time)           # 2026-11-18 15:00:00+09:00
 
 - 時刻はすべて日本時間で扱います。ラズパイの時計が UTC などほかのタイムゾーンでも、結果は変わりません。
   - `get_weather_in_days` は、日本時間の今の時刻を使います。
-  - `get_weather` に渡す `datetime` は、タイムゾーンがなければ日本時間とみなします。タイムゾーンが付いていれば、日本時間に直してから使います。
+  - `get_weather` と `get_weather_at` に渡す `datetime` は、タイムゾーンがなければ日本時間とみなします。タイムゾーンが付いていれば、日本時間に直してから使います。
 - 予報は 1 時間ごとなので、分以下は切り捨てます（15:40 なら 15:00 の予報）。
 - `get_weather_in_days` に渡せる日数は 1〜15 です（`MAX_DAYS`）。Open-Meteo の予報は今日を含めて 16 日分なので、15 日後が最後です。範囲外の日数を渡すと `ValueError` になります。
-- `get_weather` で取得できるのは、およそ 3 か月前から 15 日後までです。範囲外の日時を渡すと `WeatherError` になり、メッセージに許される範囲が出ます。
+- `get_weather` と `get_weather_at` で取得できるのは、およそ 3 か月前から 15 日後までです。範囲外の日時を渡すと `WeatherError` になり、メッセージに許される範囲が出ます。
 
-### 天気とエラー
+### 天気をまとめる・まとめない
 
-- `forecast.weather` は `Weather`（`StrEnum`）で、値は「晴れ」「くもり」「霧」「雨」「雪」「雷雨」「不明」のどれかです。
-- 通信できないときや、`get_weather` に範囲外の日時を渡したときは `WeatherError` を投げます。
+どの関数も、`summarize` で天気の粒度を選べます。
+
+| 指定 | `forecast.weather` の型 | 値の例 |
+| --- | --- | --- |
+| `summarize=True`（指定しないときはこちら） | `Weather` | 「晴れ」「くもり」「霧」「雨」「雪」「雷雨」「不明」の 7 種類。`kyoto_weather.py` が表示する天気と同じです。 |
+| `summarize=False` | `WeatherDetail` | 「快晴」「弱い霧雨」「激しいにわか雨」など、天気コードごとの 29 種類と「不明」 |
+
+- どちらも `StrEnum` なので、`print(forecast.weather)` で表示名が出ます。
+- `WeatherDetail` からは、まとめたときの天気を `.weather` で取り出せます（`WeatherDetail.LIGHT_DRIZZLE.weather` は `Weather.RAIN`）。
+- 天気コードと天気の対応は [docs/weather_codes.md](docs/weather_codes.md) にあります。
+
+### エラー
+
+- 通信できないときや、範囲外の日時・緯度・経度を渡したときは `WeatherError` を投げます。メッセージには Open-Meteo が返した理由が出ます。
+- 知らない都道府県名や、範囲外の日数を渡したときは `ValueError` を投げます。
 
 `kyoto_weather.py` は、このライブラリを使って「1 週間後の今の時刻の京都」の天気を表示するスクリプトです。ほかの場所や日数にしたい場合は、`kyoto_weather.py` の `get_weather_in_days(Prefecture.KYOTO, 7)` を書き換えてください。
 
@@ -124,7 +142,8 @@ print(forecast.time)           # 2026-11-18 15:00:00+09:00
 .
 ├── kyoto_weather.py   京都の 1 週間後の天気を表示して画像を開くスクリプト
 ├── tobira_weather/    天気を取得するライブラリ
-│   ├── forecast.py        天気の取得と、天気コードのまとめ方
+│   ├── forecast.py        天気を取得する関数
+│   ├── weather.py         天気の種類と、天気コードとの対応表
 │   └── prefecture.py      都道府県と緯度経度の表
 ├── images/            天気ごとの画像（SVG）
 ├── docs/              ドキュメント
