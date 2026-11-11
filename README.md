@@ -3,7 +3,7 @@
 1 週間後の現在時刻の京都の天気を [Open-Meteo](https://open-meteo.com/) から取得して表示し、天気に対応する画像をブラウザで開くスクリプトです。Raspberry Pi Zero W で動かすことを想定しています。
 
 ```
-$ python3 kyoto_weather.py
+$ python kyoto_weather.py
 2026-11-07 23:00 の京都の天気: 晴れ
 ```
 
@@ -16,7 +16,7 @@ $ python3 kyoto_weather.py
 - インターネット接続
 - ブラウザ epiphany（下の手順で入れる）
 
-Python は OS に入っている `python3` をそのまま使います。追加の Python パッケージは不要です。
+Python は OS に入っているもの（`python` コマンド）をそのまま使います。追加の Python パッケージは不要です。
 
 ## ラズパイでの準備
 
