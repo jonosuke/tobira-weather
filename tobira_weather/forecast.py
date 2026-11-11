@@ -3,7 +3,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
 from zoneinfo import ZoneInfo
 
@@ -11,6 +11,8 @@ from .prefecture import Prefecture
 
 API_URL = "https://api.open-meteo.com/v1/forecast"
 JST = ZoneInfo("Asia/Tokyo")
+MAX_DAYS = 15
+"""get_weather_in_days で指定できる最大の日数。Open-Meteo の予報は今日を含めて 16 日分。"""
 
 
 class Weather(StrEnum):
@@ -57,8 +59,9 @@ class WeatherError(Exception):
 def get_weather(prefecture: Prefecture | str, when: datetime) -> Forecast:
     """都道府県庁の位置の、when の時刻の予報を返す。
 
-    予報は 1 時間単位のため、分以下は切り捨てる。タイムゾーンのない when は日本時間とみなす。
-    取得できるのはおよそ 3 か月前から 16 日後まで。
+    時刻はすべて日本時間で扱う。タイムゾーンのない when は日本時間とみなし、
+    タイムゾーンの付いた when は日本時間に直す。予報は 1 時間単位のため、分以下は切り捨てる。
+    取得できるのはおよそ 3 か月前から MAX_DAYS 日後まで。
     知らない都道府県名は ValueError、取得の失敗は WeatherError。
     """
     prefecture = Prefecture(prefecture)
@@ -81,6 +84,13 @@ def get_weather(prefecture: Prefecture | str, when: datetime) -> Forecast:
     except (urllib.error.URLError, TimeoutError) as error:
         raise WeatherError(f"Open-Meteo に接続できませんでした: {error}") from error
     return Forecast(prefecture, hour, data["hourly"]["weather_code"][0])
+
+
+def get_weather_in_days(prefecture: Prefecture | str, days: int) -> Forecast:
+    """days 日後の、今と同じ時刻 (日本時間) の予報を返す。days は 1 から MAX_DAYS。"""
+    if not 1 <= days <= MAX_DAYS:
+        raise ValueError(f"days は 1 から {MAX_DAYS} の範囲で指定してください: {days}")
+    return get_weather(prefecture, datetime.now(JST) + timedelta(days=days))
 
 
 def _error_reason(error: urllib.error.HTTPError) -> str:
