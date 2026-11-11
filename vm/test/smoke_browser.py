@@ -1,11 +1,9 @@
 """pyautogui でブラウザを起動し、URL を入力して開けるかの簡単な確認。
 
 ゲスト内のデスクトップ (X11) 上で実行する:
-    DISPLAY=:0 ~/venv/bin/python smoke_browser.py [epiphany|firefox|chromium] [URL]
+    DISPLAY=:0 ~/venv/bin/python smoke_browser.py [chromium|firefox] [URL]
 
-Pi Zero W (ARMv6) で使えるのは epiphany (WebKitGTK の ARMv6 ビルド)。
-firefox は起動スクリプトが armv6l を拒否し、chromium は ARMv7 ビルドのため、
-この 2 つは VM でしか動かない。
+既定は Raspberry Pi OS 標準の chromium。
 """
 import os
 import subprocess
@@ -18,14 +16,12 @@ if os.environ.get("XDG_SESSION_TYPE", "tty") == "tty":
 
 import pyautogui  # noqa: E402
 
-# 起動コマンドとウィンドウクラス。firefox / chromium は RAM 1GB 未満だと
-# 確認ダイアログで止まるため、それを飛ばす指定を付ける
+# 起動コマンドとウィンドウクラス
 BROWSERS = {
-    "epiphany": (["epiphany"], "epiphany"),
-    "firefox": (["env", "FF_SKIP_MEMCHECK=1", "firefox"], "firefox"),
-    "chromium": (["chromium", "--no-memcheck"], "chromium"),
+    "chromium": (["chromium"], "chromium"),
+    "firefox": (["firefox"], "firefox"),
 }
-# エミュレーションでは起動・読み込みとも数十秒〜数分かかるため長めに待つ
+# 実機は VM より遅いため長めに待つ
 WINDOW_TIMEOUT = 300
 PAGE_LOAD_TIMEOUT = 300
 # この秒数たってもタイトルが変わらなければ、Enter が取りこぼされたとみなして押し直す
@@ -47,7 +43,7 @@ def active_title():
 
 
 def main():
-    browser = sys.argv[1] if len(sys.argv) > 1 else "epiphany"
+    browser = sys.argv[1] if len(sys.argv) > 1 else "chromium"
     url = sys.argv[2] if len(sys.argv) > 2 else "https://example.com"
     command, window_class = BROWSERS[browser]
 
@@ -92,7 +88,9 @@ def main():
     pyautogui.screenshot(shot)
     print("screenshot:", shot)
 
-    pyautogui.hotkey("ctrl", "q")
+    # ウィンドウを閉じて終了する。Chromium は Ctrl+Shift+Q が効かず、Firefox は Ctrl+Q だと
+    # タブが複数あるとき確認を出すため。強制終了すると次の起動でタブが復元される
+    pyautogui.hotkey("alt", "f4")
     try:
         proc.wait(timeout=60)
     except subprocess.TimeoutExpired:
