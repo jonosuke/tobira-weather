@@ -10,10 +10,9 @@ import shutil
 import subprocess
 import sys
 import webbrowser
-from datetime import datetime, timedelta
 from pathlib import Path
 
-from tobira_weather import Prefecture, Weather, WeatherError, get_weather
+from tobira_weather import Prefecture, Weather, WeatherError, get_weather_in_days
 
 IMAGE_DIR = Path(__file__).resolve().parent / "images"
 
@@ -30,7 +29,7 @@ def open_image(weather: Weather):
 
 def main():
     try:
-        forecast = get_weather(Prefecture.KYOTO, datetime.now().astimezone() + timedelta(days=7))
+        forecast = get_weather_in_days(Prefecture.KYOTO, 7)
     except WeatherError as error:
         sys.exit(f"天気を取得できませんでした: {error}")
     name = forecast.weather.value
