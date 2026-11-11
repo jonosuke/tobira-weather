@@ -1,6 +1,6 @@
 # tobira-weather
 
-1 週間後の現在時刻の京都の天気・気温・風速を [Open-Meteo](https://open-meteo.com/) から取得して表示し、天気に対応する画像をブラウザで開くスクリプトです。Raspberry Pi Zero W で動かすことを想定しています。
+1 週間後の現在時刻の京都の天気・気温・風速を [Open-Meteo](https://open-meteo.com/) から取得して表示し、天気に対応する画像をブラウザで開くスクリプトです。Raspberry Pi 3B+ で動かすことを想定しています。
 
 ```
 $ python kyoto_weather.py
@@ -11,10 +11,10 @@ $ python kyoto_weather.py
 
 ## 必要なもの
 
-- Raspberry Pi Zero W
-- Raspberry Pi OS Trixie（32-bit、デスクトップ付き）
+- Raspberry Pi 3B+
+- Raspberry Pi OS Trixie（64-bit、デスクトップ付き）
 - インターネット接続
-- ブラウザ epiphany（下の手順で入れる）
+- ブラウザ Chromium（Raspberry Pi OS に最初から入っている）
 
 Python は OS に入っているもの（`python` コマンド）をそのまま使います。追加の Python パッケージは不要です。
 
@@ -22,24 +22,15 @@ Python は OS に入っているもの（`python` コマンド）をそのまま
 
 ラズパイのデスクトップでターミナルを開き、次を実行します。
 
-1. epiphany を入れる。
+1. デスクトップに自動でログインする設定にしている場合は、Chromium がキーリングを使わないようにする。
 
    ```sh
-   sudo apt update
-   sudo apt install -y epiphany-browser
+   echo 'export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --password-store=basic"' | sudo tee /etc/chromium.d/90-password-store
    ```
 
-   Raspberry Pi OS の標準のブラウザは Chromium ですが、Chromium は Pi Zero W（ARMv6）では動きません。そのため epiphany を使います。
+   自動ログインではキーリングが開かないため、Chromium を初めて起動したときに「新しいキーリングのパスワードを決めてください」という画面が出て、画像のページが開く前に止まります。パスワードを入力してログインしている場合は、この手順は不要です。
 
-2. epiphany の「既定のブラウザにしますか?」という確認を出さないようにする。
-
-   ```sh
-   gsettings set org.gnome.Epiphany ask-for-default false
-   ```
-
-   この確認が出ると、画像のページより前に確認の画面が出てしまいます。デスクトップにログインするユーザーで実行してください。
-
-3. このリポジトリを取得する。
+2. このリポジトリを取得する。
 
    ```sh
    git clone https://github.com/jonosuke/tobira-weather.git
@@ -54,10 +45,11 @@ cd tobira-weather
 python kyoto_weather.py
 ```
 
-- 天気・気温・風速をターミナルに表示したあと、対応する画像を epiphany で開きます。
-- epiphany がすでに開いている場合は、新しいタブで開きます。
-- Pi Zero W は動作が遅いため、画像が表示されるまでしばらくかかります。開発用 VM では、epiphany の起動から表示まで 30 秒ほどかかりました。
+- 天気・気温・風速をターミナルに表示したあと、対応する画像を Chromium で開きます。
+- Chromium がすでに開いている場合は、同じウィンドウの新しいタブで開きます。
+- 開発用 VM では、Chromium の起動から画像の表示まで 2 秒ほどでした。Pi 3B+ は VM より遅いので、もう少しかかるはずです（実機では未確認）。
 - SSH から実行した場合も、ラズパイの画面（`:0`）に表示します。
+- Chromium を閉じるときは、ウィンドウの × ボタンか Alt+F4 を使ってください。強制終了すると、次に起動したときに前のタブを復元しようとします。
 
 `kyoto_weather.py`、`tobira_weather/` フォルダ、`images/` フォルダは、同じ場所に置いておく必要があります。スクリプトだけを別の場所にコピーすると、ライブラリや画像が見つからなくなります。
 
@@ -66,8 +58,8 @@ python kyoto_weather.py
 | 症状 | 原因と対処 |
 | --- | --- |
 | 「天気を取得できませんでした」と表示される | インターネットにつながっていません。ネットワークの接続を確認してください。 |
-| ブラウザが開かない、または Chromium が開こうとする | epiphany が入っていません。「ラズパイでの準備」の 1 を実行してください。 |
-| 画像の代わりに「既定のブラウザにしますか?」が出る | 「ラズパイでの準備」の 2 を実行してください。 |
+| 画像の代わりに「新しいキーリングのパスワード」の画面が出る | 「ラズパイでの準備」の 1 を実行してください。 |
+| ブラウザが開かない | Chromium が入っていません。デスクトップなしの Raspberry Pi OS（Lite）では入っていないので、`sudo apt install -y chromium` で入れてください。 |
 | `ModuleNotFoundError: No module named 'tobira_weather'` と出る | `tobira_weather/` フォルダがスクリプトと同じ場所にありません。 |
 | ブラウザに「ファイルが見つからない」と出る | `images/` フォルダがスクリプトと同じ場所にありません。 |
 
@@ -168,5 +160,5 @@ print(forecast.weather)        # おおむね晴れ
 
 ## 動作確認の状況
 
-- 開発用 VM（Raspberry Pi OS Trixie、Python 3.13）で、天気の取得と画像の表示を確認しています。
-- 実機の Pi Zero W では、まだ確認していません。VM の CPU は ARMv7 のため、ARMv6 の実機でしか起きない問題は VM では見つかりません。実機で動かして問題があれば知らせてください。
+- 開発用 VM（Raspberry Pi OS Trixie 64-bit、Python 3.13、Chromium 154）で、天気の取得と画像の表示を確認しています。
+- 実機の Pi 3B+ では、まだ確認していません。VM は Mac の CPU で動くため、実機より速く、GPU も違います。実機で動かして問題があれば知らせてください。
