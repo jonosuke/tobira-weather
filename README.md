@@ -93,13 +93,24 @@ forecast = get_weather(Prefecture.KYOTO, datetime(2026, 11, 18, 15))
 print(forecast.weather)        # 晴れ
 print(forecast.code)           # 2（Open-Meteo が返した WMO 天気コード）
 print(forecast.time)           # 2026-11-18 15:00:00+09:00
+print(forecast.temperature)    # 15.7（気温、℃）
+print(forecast.wind_speed)     # 1.4（風速、m/s）
 
 # 緯度・経度を指定して、天気をまとめずに取得する
 forecast = get_weather_at(35.0, 135.7, datetime(2026, 11, 18, 15), summarize=False)
 print(forecast.weather)        # おおむね晴れ
 ```
 
-どの関数も、1 時間ごとの予報を返します。返す値はどれも `Forecast` で、天気（`weather`）、天気コード（`code`）、対象の時刻（`time`）、緯度と経度（`latitude`、`longitude`）を持ちます。
+どの関数も、1 時間ごとの予報を返します。返す値はどれも `Forecast` で、次の値を持ちます。
+
+| 名前 | 内容 |
+| --- | --- |
+| `weather` | 天気（下の「天気をまとめる・まとめない」を参照） |
+| `code` | Open-Meteo が返した WMO 天気コード |
+| `temperature` | 気温（℃）。地上 2 m の気温です。 |
+| `wind_speed` | 風速（m/s）。地上 10 m の風速です。 |
+| `time` | 予報の対象の時刻（日本時間） |
+| `latitude`、`longitude` | 予報を取得した緯度と経度 |
 
 ### 都道府県
 
